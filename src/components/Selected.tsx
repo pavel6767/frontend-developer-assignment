@@ -28,6 +28,7 @@ const Selected: React.FC<SelectedProps> = ({
 }) => {
   const {
     state: { selected },
+    setState,
   } = useContext(EmailsContext);
   const [expanded, setExpanded] = useState(new Set());
 
@@ -36,6 +37,39 @@ const Selected: React.FC<SelectedProps> = ({
       const newState = new Set(prevState);
       if (newState.has(domain)) newState.delete(domain);
       else newState.add(domain);
+      return newState;
+    });
+  };
+
+  const handleSelectDomain = (event: React.MouseEvent, domain: string) => {
+    event.stopPropagation();
+    setState((prevState) => {
+      const newState = structuredClone(prevState);
+
+      if (!newState.available[domain]) newState.available[domain] = [];
+      newState.available[domain].push(...newState.selected[domain]);
+      newState.available[domain].sort();
+
+      delete newState.selected[domain];
+      return newState;
+    });
+  };
+
+  const handleSelectEmail = (
+    domain: string,
+    email: string,
+    index: number = 0
+  ) => {
+    setState((prevState) => {
+      const newState = structuredClone(prevState);
+
+      if (!newState.available[domain]) newState.available[domain] = [];
+      newState.available[domain].push(email);
+      newState.available[domain].sort();
+
+      newState.selected[domain].splice(index, 1);
+      if (!newState.selected[domain].length) delete newState.selected[domain];
+
       return newState;
     });
   };
@@ -69,56 +103,46 @@ const Selected: React.FC<SelectedProps> = ({
                 }
               />
               <Text textAlign="left">Company Recipients</Text>
-              {/* <Button
-                size="sm"
-                onClick={(event) => handleSelectDomain(event, domain)}
-                >
-                Select Domain
-                </Button> */}
             </Grid>
           </AccordionButton>
           <AccordionPanel>
             <Accordion allowMultiple>
-              {Object.entries(selected).map(([domain, domainEmails]) => {
-                // if (!domainEmails) return null;
-                return (
-                  <AccordionItem key={domain}>
-                    <AccordionButton
-                      as="div"
-                      onClick={handleAccordionClick.bind(null, domain)}
+              {Object.entries(selected).map(([domain, domainEmails]) => (
+                <AccordionItem key={domain}>
+                  <AccordionButton
+                    as="div"
+                    onClick={handleAccordionClick.bind(null, domain)}
+                  >
+                    <Grid
+                      templateColumns="20px 3fr 1fr"
+                      alignItems="center"
+                      w="100%"
                     >
-                      <Grid
-                        templateColumns="20px 3fr 1fr"
-                        alignItems="center"
-                        w="100%"
-                      >
-                        <Icon
-                          as={
-                            expanded.has(domain)
-                              ? ChevronUpIcon
-                              : ChevronDownIcon
-                          }
-                        />
-                        <Text textAlign="left">{domain}</Text>
-                        {/* <Button
+                      <Icon
+                        as={
+                          expanded.has(domain) ? ChevronUpIcon : ChevronDownIcon
+                        }
+                      />
+                      <Text textAlign="left">{domain}</Text>
+                      <Button
                         size="sm"
                         onClick={(event) => handleSelectDomain(event, domain)}
                       >
-                        Select Domain
-                      </Button> */}
-                      </Grid>
-                    </AccordionButton>
-                    <AccordionPanel pb={4}>
-                      <UnorderedList styleType="none">
-                        {domainEmails.map((email, emailIndex) => (
-                          <ListItem key={email} py="1" pl="3">
-                            <Flex
-                              alignItems="center"
-                              justifyContent="space-between"
-                              w="100%"
-                            >
-                              <Text>{email}</Text>
-                              {/* <Box onClick={(event) => event.stopPropagation()}>
+                        Deselect Domain
+                      </Button>
+                    </Grid>
+                  </AccordionButton>
+                  <AccordionPanel pb={4}>
+                    <UnorderedList styleType="none">
+                      {domainEmails.map((email, emailIndex) => (
+                        <ListItem key={email} py="1" pl="3">
+                          <Flex
+                            alignItems="center"
+                            justifyContent="space-between"
+                            w="100%"
+                          >
+                            <Text>{email}</Text>
+                            <Box onClick={(event) => event.stopPropagation()}>
                               <Button
                                 size="sm"
                                 ml={4}
@@ -129,17 +153,16 @@ const Selected: React.FC<SelectedProps> = ({
                                   emailIndex
                                 )}
                               >
-                                Select
+                                Deselect
                               </Button>
-                            </Box> */}
-                            </Flex>
-                          </ListItem>
-                        ))}
-                      </UnorderedList>
-                    </AccordionPanel>
-                  </AccordionItem>
-                );
-              })}
+                            </Box>
+                          </Flex>
+                        </ListItem>
+                      ))}
+                    </UnorderedList>
+                  </AccordionPanel>
+                </AccordionItem>
+              ))}
             </Accordion>
           </AccordionPanel>
         </AccordionItem>
@@ -157,45 +180,37 @@ const Selected: React.FC<SelectedProps> = ({
                 }
               />
               <Text textAlign="left">Email Recipients</Text>
-              {/* <Button
-                size="sm"
-                onClick={(event) => handleSelectDomain(event, domain)}
-              >
-                Select Domain
-              </Button> */}
             </Grid>
           </AccordionButton>
           <AccordionPanel>
             <UnorderedList styleType="none">
-              {Object.entries(selected).map(([_, domainEmails]) => {
-                // if (!domainEmails) return null;
-                return domainEmails
-                  .map((email) => (
-                    <ListItem key={email} py="1" pl="3">
-                      <Flex
-                        alignItems="center"
-                        justifyContent="space-between"
-                        w="100%"
-                      >
-                        <Text>{email}</Text>
-                        {/* <Box onClick={(event) => event.stopPropagation()}>
-                              <Button
-                                size="sm"
-                                ml={4}
-                                onClick={handleSelectEmail.bind(
-                                  null,
-                                  domain,
-                                  email,
-                                  emailIndex
-                                )}
-                              >
-                                Select
-                              </Button>
-                            </Box> */}
-                      </Flex>
-                    </ListItem>
-                  ));
-              })}
+              {Object.entries(selected).map(([domain, domainEmails]) =>
+                domainEmails.map((email, emailIndex) => (
+                  <ListItem key={email} py="1" pl="3">
+                    <Flex
+                      alignItems="center"
+                      justifyContent="space-between"
+                      w="100%"
+                    >
+                      <Text>{email}</Text>
+                      <Box onClick={(event) => event.stopPropagation()}>
+                        <Button
+                          size="sm"
+                          ml={4}
+                          onClick={handleSelectEmail.bind(
+                            null,
+                            domain,
+                            email,
+                            emailIndex
+                          )}
+                        >
+                          Select
+                        </Button>
+                      </Box>
+                    </Flex>
+                  </ListItem>
+                ))
+              )}
             </UnorderedList>
           </AccordionPanel>
         </AccordionItem>
