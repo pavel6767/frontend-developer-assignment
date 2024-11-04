@@ -19,8 +19,9 @@ const Selected: React.FC<SelectedProps> = ({
   borderText,
   showSearchBar = false,
 }) => {
+    // const { state: {selected} } = useContext(EmailsContext);
     const { state } = useContext(EmailsContext);
-    const groupedEmails = groupEmailsByDomain(state.selected);
+    // const groupedEmails = groupEmailsByDomain(state.selected);
 
   return (
     <Box border="solid 1px" borderColor="gray.800" position="relative" p="4">
@@ -45,9 +46,7 @@ const Selected: React.FC<SelectedProps> = ({
           <Input placeholder="Search..." />
         </InputGroup>
       )}
-      <pre>
-        {JSON.stringify(groupedEmails)}
-      </pre>
+      <pre>{JSON.stringify(state, null, 2)}</pre>
     </Box>
   );
 };

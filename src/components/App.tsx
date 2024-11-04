@@ -6,14 +6,15 @@ import { Grid, GridItem } from "@chakra-ui/react";
 
 import RECIPIENTS from "../assets/recipientsData.json";
 import { InitialState, EmailsContext } from "../state/emails";
+import { groupEmailsByDomain } from "../utils";
 
 const App = () => {
   const [state, setState] = useState(InitialState);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setState(() =>
-      RECIPIENTS.reduce(
+    setState(() => {
+      const newState = RECIPIENTS.reduce(
         (acc, curr) => {
           if (curr.isSelected) acc.selected.push(curr.email);
           else acc.available.push(curr.email);
@@ -22,6 +23,11 @@ const App = () => {
         },
         { available: [], selected: [] }
       )
+      return {
+        available: groupEmailsByDomain(newState.available),
+        selected: groupEmailsByDomain(newState.selected),
+      }
+    }
     );
     setLoading(false);
   }, []);

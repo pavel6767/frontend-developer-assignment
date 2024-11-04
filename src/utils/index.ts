@@ -1,4 +1,4 @@
-type GroupedByDomain = Record<string, string[]>;
+import { GroupedByDomain } from "../types/emailTypes";
 
 export const groupEmailsByDomain = (emails: string[]): GroupedByDomain =>
   emails.reduce((res, email) => {

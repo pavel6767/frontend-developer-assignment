@@ -8,9 +8,11 @@ export interface EmailGroup {
   emails: string[];
 }
 
+export type GroupedByDomain = Record<string, string[]>;
+
 export interface IEmailsState {
-  available: string[];
-  selected: string[];
+  available: GroupedByDomain;
+  selected: GroupedByDomain;
 }
 
 export interface IEmailsContext {

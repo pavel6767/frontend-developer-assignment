@@ -29,24 +29,48 @@ const Available: React.FC<AvailableProps> = ({
   borderText,
   showSearchBar = false,
 }) => {
-  const { state } = useContext(EmailsContext);
+  const {
+    state: { available },
+    setState,
+  } = useContext(EmailsContext);
   const [expanded, setExpanded] = useState(new Set());
-  const [groupedEmails, setGroupedEmails] = useState(
-    groupEmailsByDomain(state.available)
-  );
-  
-  useEffect(() => {
-    setGroupedEmails(() => groupEmailsByDomain(state.available));
-  },[state.available])
 
+  // :P:: TODO: still need to sort
+  // useEffect(() => {
+  //   setGroupedEmails(() => groupEmailsByDomain(state.available));
+  // }, [state.available]);
 
+  const handleSelectEmail = (
+    domain: string,
+    email: string,
+    index: number = 0
+  ) => {
+    setState((prevState) => {
+      const newState = structuredClone(prevState);
 
-  const handleSelectEmail = (email: string) => {
-    return null;
+      if (!newState.selected[domain]) newState.selected[domain] = [];
+      newState.selected[domain].push(email);
+      newState.selected[domain].sort();
+
+      newState.available[domain].splice(index, 1);
+      if (!newState.available[domain].length) delete newState.available[domain];
+
+      return newState;
+    });
   };
-  const handleSelectDomain = (event: React.MouseEvent, emails: string[]) => {
+
+  const handleSelectDomain = (event: React.MouseEvent, domain: string) => {
     event.stopPropagation();
-    return null;
+    setState((prevState) => {
+      const newState = structuredClone(prevState);
+
+      if (!newState.selected[domain]) newState.selected[domain] = [];
+      newState.selected[domain].push(...newState.available[domain]);
+      newState.selected[domain].sort();
+
+      delete newState.available[domain];
+      return newState;
+    });
   };
 
   const handleAccordionClick = (domain: string) => {
@@ -82,10 +106,11 @@ const Available: React.FC<AvailableProps> = ({
 
       <Box>
         <Accordion allowToggle>
-          {Object.entries(groupedEmails).map(([domain, domainEmails]) =>
+          {Object.entries(available).map(([domain, domainEmails]) =>
             domainEmails.length > 1 ? (
               <AccordionItem key={domain}>
                 <AccordionButton
+                  as="div"
                   onClick={handleAccordionClick.bind(null, domain)}
                 >
                   <Grid
@@ -102,16 +127,16 @@ const Available: React.FC<AvailableProps> = ({
                     <Button
                       size="sm"
                       onClick={(event) =>
-                        handleSelectDomain(event, domainEmails)
+                        handleSelectDomain(event, domain)
                       }
                     >
-                      Domain Action
+                      Select Domain
                     </Button>
                   </Grid>
                 </AccordionButton>
                 <AccordionPanel pb={4}>
                   <UnorderedList styleType="none">
-                    {domainEmails.map((email) => (
+                    {domainEmails.map((email, emailIndex) => (
                       <ListItem key={email} py="1" pl="3">
                         <Flex
                           alignItems="center"
@@ -119,13 +144,20 @@ const Available: React.FC<AvailableProps> = ({
                           w="100%"
                         >
                           <Text>{email}</Text>
-                          <Button
-                            size="sm"
-                            ml={4}
-                            onClick={handleSelectEmail.bind(null, email)}
-                          >
-                            Select
-                          </Button>
+                          <Box onClick={(event) => event.stopPropagation()}>
+                            <Button
+                              size="sm"
+                              ml={4}
+                              onClick={handleSelectEmail.bind(
+                                null,
+                                domain,
+                                email,
+                                emailIndex
+                              )}
+                            >
+                              Select
+                            </Button>
+                          </Box>
                         </Flex>
                       </ListItem>
                     ))}
@@ -141,13 +173,19 @@ const Available: React.FC<AvailableProps> = ({
                     w="100%"
                   >
                     <Text>{domainEmails[0]}</Text>
-                    <Button
-                      size="sm"
-                      ml={4}
-                      onClick={handleSelectEmail.bind(null, domainEmails[0])}
-                    >
-                      Select
-                    </Button>
+                    <Box onClick={(event) => event.stopPropagation()}>
+                      <Button
+                        size="sm"
+                        ml={4}
+                        onClick={handleSelectEmail.bind(
+                          null,
+                          domain,
+                          domainEmails[0]
+                        )}
+                      >
+                        Select
+                      </Button>
+                    </Box>
                   </Flex>
                 </ListItem>
               </UnorderedList>
