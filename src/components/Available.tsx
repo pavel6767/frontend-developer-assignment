@@ -18,6 +18,7 @@ import {
 } from "@chakra-ui/react";
 import { ChevronDownIcon, ChevronUpIcon, SearchIcon } from "@chakra-ui/icons";
 import { EmailsContext } from "../state/emails";
+import { isValidEmail } from "../utils";
 
 interface AvailableProps {
   borderText: string;
@@ -34,6 +35,7 @@ const Available: React.FC<AvailableProps> = ({
   } = useContext(EmailsContext);
   const [expanded, setExpanded] = useState(new Set());
   const [search, setSearch] = useState("");
+  const [showAddButton, setShowAddButton] = useState(false);
   const [filteredDomains, setFilteredDomains] = useState(
     Object.keys(available).sort()
   );
@@ -41,11 +43,15 @@ const Available: React.FC<AvailableProps> = ({
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
     setSearch(value);
-    const filtered = value
-      ? Object.keys(available).filter((domain) => domain.includes(value))
+  };
+
+  useEffect(() => {
+    const filtered = search
+      ? Object.keys(available).filter((domain) => domain.includes(search))
       : Object.keys(available);
     setFilteredDomains(filtered.sort());
-  };
+    setShowAddButton(isValidEmail(search));
+  }, [search, available]);
 
   useEffect(() => {
     setFilteredDomains((prevState) => {
@@ -103,6 +109,13 @@ const Available: React.FC<AvailableProps> = ({
     });
   };
 
+  const handleAddClick = () => {
+    const domain = search.split("@")[1];
+    if (!available[domain]) available[domain] = [];
+    available[domain].push(search);
+    setSearch("");
+  };
+
   return (
     <Box border="solid 1px" borderColor="gray.800" position="relative" p="4">
       <Text
@@ -125,7 +138,13 @@ const Available: React.FC<AvailableProps> = ({
             placeholder="Search..."
             value={search}
             onChange={handleSearchChange}
+            type="email"
           />
+          {showAddButton && (
+            <Button ml="3" onClick={handleAddClick}>
+              Add
+            </Button>
+          )}
         </InputGroup>
       )}
 
