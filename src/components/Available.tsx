@@ -18,7 +18,6 @@ import {
 } from "@chakra-ui/react";
 import { ChevronDownIcon, ChevronUpIcon, SearchIcon } from "@chakra-ui/icons";
 import { EmailsContext } from "../state/emails";
-import { groupEmailsByDomain } from "../utils";
 
 interface AvailableProps {
   borderText: string;
@@ -34,6 +33,28 @@ const Available: React.FC<AvailableProps> = ({
     setState,
   } = useContext(EmailsContext);
   const [expanded, setExpanded] = useState(new Set());
+  const [search, setSearch] = useState("");
+  const [filteredDomains, setFilteredDomains] = useState(
+    Object.keys(available).sort()
+  );
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setSearch(value);
+    const filtered = value
+      ? Object.keys(available).filter((domain) => domain.includes(value))
+      : Object.keys(available);
+    setFilteredDomains(filtered.sort());
+  };
+
+  useEffect(() => {
+    setFilteredDomains((prevState) => {
+      if (prevState.length === Object.keys(available).length) return prevState;
+
+      const newState = prevState.filter((domain) => !!available[domain]);
+      return newState;
+    });
+  }, [available]);
 
   // :P:: TODO: still need to sort
   // useEffect(() => {
@@ -100,14 +121,20 @@ const Available: React.FC<AvailableProps> = ({
           <InputLeftElement pointerEvents="none">
             <SearchIcon color="gray.300" />
           </InputLeftElement>
-          <Input placeholder="Search..." />
+          <Input
+            placeholder="Search..."
+            value={search}
+            onChange={handleSearchChange}
+          />
         </InputGroup>
       )}
 
       <Box>
         <Accordion allowToggle>
-          {Object.entries(available).map(([domain, domainEmails]) =>
-            domainEmails.length > 1 ? (
+          {filteredDomains.map((domain) => {
+            const domainEmails = available[domain];
+            if (!domainEmails) return null;
+            return domainEmails.length > 1 ? (
               <AccordionItem key={domain}>
                 <AccordionButton
                   as="div"
@@ -126,9 +153,7 @@ const Available: React.FC<AvailableProps> = ({
                     <Text textAlign="left">{domain}</Text>
                     <Button
                       size="sm"
-                      onClick={(event) =>
-                        handleSelectDomain(event, domain)
-                      }
+                      onClick={(event) => handleSelectDomain(event, domain)}
                     >
                       Select Domain
                     </Button>
@@ -189,8 +214,8 @@ const Available: React.FC<AvailableProps> = ({
                   </Flex>
                 </ListItem>
               </UnorderedList>
-            )
-          )}
+            );
+          })}
         </Accordion>
       </Box>
     </Box>
