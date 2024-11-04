@@ -13,14 +13,13 @@ import { useAvailableLogic } from "../hooks/useAvailableLogic";
 import DomainAccordionItem from "./components/DomainAccordionItem";
 import UnorderedListItem from "./components/UnorderedListItem";
 import CustomGridItem from "./components/CustomGridItem";
+import { sortFilteredDomains } from "../utils";
 
 interface AvailableProps {
   borderText: string;
 }
 
-const Available: React.FC<AvailableProps> = ({
-  borderText,
-}) => {
+const Available: React.FC<AvailableProps> = ({ borderText }) => {
   const {
     context: { available },
     state: { search, expanded, showAddButton, filteredDomains },
@@ -53,7 +52,7 @@ const Available: React.FC<AvailableProps> = ({
       </InputGroup>
 
       <Accordion allowMultiple>
-        {filteredDomains.map((domain) => {
+        {sortFilteredDomains(filteredDomains, available).map((domain) => {
           const domainEmails = available[domain];
           if (!domainEmails) return null;
           return domainEmails.length > 1 ? (
