@@ -1,221 +1,91 @@
-import React, { useContext, useState } from "react";
+import React from "react";
 import {
   Accordion,
   AccordionItem,
-  AccordionButton,
   AccordionPanel,
-  Icon,
-  Button,
-  Flex,
-  Grid,
   UnorderedList,
-  ListItem,
-  Box,
-  Text,
 } from "@chakra-ui/react";
-import { ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons";
 
-import { EmailsContext } from "../state/emails";
+import { useSelectedLogic } from "../hooks/useSelectedLogic";
+import DomainAccordionItem from "./components/DomainAccordionItem";
+import CustomAccordionButton from "./components/CustomAccordionButton";
+import UnorderedListItem from "./components/UnorderedListItem";
+import CustomGridItem from "./components/CustomGridItem";
 
 interface SelectedProps {
   borderText: string;
-  showSearchBar?: boolean;
 }
 
-const Selected: React.FC<SelectedProps> = ({
-  borderText,
-  showSearchBar = false,
-}) => {
+const Selected: React.FC<SelectedProps> = ({ borderText }) => {
   const {
-    state: { selected },
-    setState,
-  } = useContext(EmailsContext);
-  const [expanded, setExpanded] = useState(new Set());
-
-  const handleAccordionClick = (domain: string) => {
-    setExpanded((prevState) => {
-      const newState = new Set(prevState);
-      if (newState.has(domain)) newState.delete(domain);
-      else newState.add(domain);
-      return newState;
-    });
-  };
-
-  const handleSelectDomain = (event: React.MouseEvent, domain: string) => {
-    event.stopPropagation();
-    setState((prevState) => {
-      const newState = structuredClone(prevState);
-
-      if (!newState.available[domain]) newState.available[domain] = [];
-      newState.available[domain].push(...newState.selected[domain]);
-      newState.available[domain].sort();
-
-      delete newState.selected[domain];
-      return newState;
-    });
-  };
-
-  const handleSelectEmail = (
-    domain: string,
-    email: string,
-    index: number = 0
-  ) => {
-    setState((prevState) => {
-      const newState = structuredClone(prevState);
-
-      if (!newState.available[domain]) newState.available[domain] = [];
-      newState.available[domain].push(email);
-      newState.available[domain].sort();
-
-      newState.selected[domain].splice(index, 1);
-      if (!newState.selected[domain].length) delete newState.selected[domain];
-
-      return newState;
-    });
-  };
+    context: { selected },
+    state: { expanded },
+    handlers: { handleAccordionClick, handleSelectDomain, handleSelectEmail },
+  } = useSelectedLogic();
 
   return (
-    <Box border="solid 1px" borderColor="gray.800" position="relative" p="4">
-      <Text
-        position="absolute"
-        top="0"
-        left="0"
-        transform="translate(20%, -50%)"
-        bg="white"
-        px="2"
-        as="h2"
-      >
-        {borderText}
-      </Text>
-
+    <CustomGridItem {...{ borderText }}>
       <Accordion allowMultiple>
         <AccordionItem>
-          <AccordionButton
-            as="div"
-            onClick={handleAccordionClick.bind(null, "company recipients")}
-          >
-            <Grid templateColumns="20px 3fr 1fr" alignItems="center" w="100%">
-              <Icon
-                as={
-                  expanded.has("company recipients")
-                    ? ChevronUpIcon
-                    : ChevronDownIcon
-                }
-              />
-              <Text textAlign="left">Company Recipients</Text>
-            </Grid>
-          </AccordionButton>
+          <CustomAccordionButton
+            {...{
+              data: { domain: "company recipients" },
+              state: { expanded: expanded.has("company recipients") },
+              handlers: { handleAccordionClick },
+            }}
+          />
           <AccordionPanel>
             <Accordion allowMultiple>
               {Object.entries(selected).map(([domain, domainEmails]) => (
-                <AccordionItem key={domain}>
-                  <AccordionButton
-                    as="div"
-                    onClick={handleAccordionClick.bind(null, domain)}
-                  >
-                    <Grid
-                      templateColumns="20px 3fr 1fr"
-                      alignItems="center"
-                      w="100%"
-                    >
-                      <Icon
-                        as={
-                          expanded.has(domain) ? ChevronUpIcon : ChevronDownIcon
-                        }
-                      />
-                      <Text textAlign="left">{domain}</Text>
-                      <Button
-                        size="sm"
-                        onClick={(event) => handleSelectDomain(event, domain)}
-                      >
-                        Deselect Domain
-                      </Button>
-                    </Grid>
-                  </AccordionButton>
-                  <AccordionPanel pb={4}>
-                    <UnorderedList styleType="none">
-                      {domainEmails.map((email, emailIndex) => (
-                        <ListItem key={email} py="1" pl="3">
-                          <Flex
-                            alignItems="center"
-                            justifyContent="space-between"
-                            w="100%"
-                          >
-                            <Text>{email}</Text>
-                            <Box onClick={(event) => event.stopPropagation()}>
-                              <Button
-                                size="sm"
-                                ml={4}
-                                onClick={handleSelectEmail.bind(
-                                  null,
-                                  domain,
-                                  email,
-                                  emailIndex
-                                )}
-                              >
-                                Deselect
-                              </Button>
-                            </Box>
-                          </Flex>
-                        </ListItem>
-                      ))}
-                    </UnorderedList>
-                  </AccordionPanel>
-                </AccordionItem>
+                <DomainAccordionItem
+                  {...{
+                    data: {
+                      domain,
+                      domainEmails,
+                      buttonLabel: "Deselect",
+                    },
+                    state: { expanded },
+                    handlers: {
+                      handleAccordionClick,
+                      handleSelectDomain,
+                      handleSelectEmail,
+                    },
+                  }}
+                />
               ))}
             </Accordion>
           </AccordionPanel>
         </AccordionItem>
         <AccordionItem>
-          <AccordionButton
-            as="div"
-            onClick={handleAccordionClick.bind(null, "email recipients")}
-          >
-            <Grid templateColumns="20px 3fr 1fr" alignItems="center" w="100%">
-              <Icon
-                as={
-                  expanded.has("email recipients")
-                    ? ChevronUpIcon
-                    : ChevronDownIcon
-                }
-              />
-              <Text textAlign="left">Email Recipients</Text>
-            </Grid>
-          </AccordionButton>
+          <CustomAccordionButton
+            {...{
+              data: { domain: "email recipients" },
+              state: { expanded: expanded.has("email recipients") },
+              handlers: { handleAccordionClick },
+            }}
+          />
           <AccordionPanel>
             <UnorderedList styleType="none">
               {Object.entries(selected).map(([domain, domainEmails]) =>
                 domainEmails.map((email, emailIndex) => (
-                  <ListItem key={email} py="1" pl="3">
-                    <Flex
-                      alignItems="center"
-                      justifyContent="space-between"
-                      w="100%"
-                    >
-                      <Text>{email}</Text>
-                      <Box onClick={(event) => event.stopPropagation()}>
-                        <Button
-                          size="sm"
-                          ml={4}
-                          onClick={handleSelectEmail.bind(
-                            null,
-                            domain,
-                            email,
-                            emailIndex
-                          )}
-                        >
-                          Select
-                        </Button>
-                      </Box>
-                    </Flex>
-                  </ListItem>
+                  <UnorderedListItem
+                    {...{
+                      data: {
+                        label: "Deselect",
+                        domain,
+                        email,
+                        emailIndex,
+                      },
+                      handlers: { handleSelectEmail },
+                    }}
+                  />
                 ))
               )}
             </UnorderedList>
           </AccordionPanel>
         </AccordionItem>
       </Accordion>
-    </Box>
+    </CustomGridItem>
   );
 };
 

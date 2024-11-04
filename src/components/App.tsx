@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { ReactComponent as TimescaleLogo } from "../assets/logo.svg";
 import Selected from "./Selected";
 import Available from "./Available";
-import { Grid, GridItem } from "@chakra-ui/react";
+import { Grid } from "@chakra-ui/react";
 
 import RECIPIENTS from "../assets/recipientsData.json";
 import { InitialState, EmailsContext } from "../state/emails";
@@ -22,13 +22,12 @@ const App = () => {
           return acc;
         },
         { available: [], selected: [] }
-      )
+      );
       return {
         available: groupEmailsByDomain(newState.available),
         selected: groupEmailsByDomain(newState.selected),
-      }
-    }
-    );
+      };
+    });
     setLoading(false);
   }, []);
 
@@ -45,14 +44,8 @@ const App = () => {
         my="6"
         px={{ base: "1.5rem", md: "0" }}
       >
-        <GridItem>
-          <Available
-            {...{ borderText: "Available recipients", showSearchBar: true }}
-          />
-        </GridItem>
-        <GridItem>
+          <Available {...{ borderText: "Available recipients" }} />
           <Selected {...{ borderText: "Selected recipients" }} />
-        </GridItem>
       </Grid>
     </EmailsContext.Provider>
   );

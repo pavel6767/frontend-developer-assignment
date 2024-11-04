@@ -1,13 +1,3 @@
-export interface IRecipients {
-  email: string;
-  isSelected: boolean;
-}
-
-export interface EmailGroup {
-  domain: string;
-  emails: string[];
-}
-
 export type GroupedByDomain = Record<string, string[]>;
 
 export interface IEmailsState {

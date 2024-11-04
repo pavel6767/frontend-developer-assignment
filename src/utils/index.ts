@@ -1,3 +1,4 @@
+import React from "react"
 import { GroupedByDomain } from "../types/emailTypes";
 
 export const groupEmailsByDomain = (emails: string[]): GroupedByDomain =>
@@ -11,4 +12,8 @@ export const groupEmailsByDomain = (emails: string[]): GroupedByDomain =>
 export const isValidEmail = (email) => {
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   return emailRegex.test(email);
+};
+
+export const stopPropagation = (event: React.MouseEvent) => {
+  event.stopPropagation();
 };
